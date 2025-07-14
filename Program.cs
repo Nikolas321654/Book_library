@@ -6,9 +6,9 @@ class Library
     public void AddBook()
     {
         Console.WriteLine("=== Enter book name ===");
-        string? book = Console.ReadLine();
+        string book = Console.ReadLine()!;
 
-        if (book == "")
+        if (string.IsNullOrWhiteSpace(book))
         {
             Console.WriteLine("=== It`s not a book's name ===");
             Console.WriteLine("=== Do you wanna enter other book name? [yes / no] ===");
@@ -19,38 +19,51 @@ class Library
                 Console.WriteLine("=== Enter book name ===");
                 string? retryBookName = Console.ReadLine();
                 _booksList.Add(retryBookName!);
-            }
-            else if (action == "no")
-            {
-                Selector();
                 return;
             }
+            else if (action == "no") { DoSelect(); return; }
+
+            Console.WriteLine("*** Unknown command ***");
+            DoSelect();
         }
         _booksList.Add(book!);
-        Selector();
+        DoSelect();
     }
 
-    public void Delete()
+    public void DeleteBook()
     {
         Console.WriteLine("=== Enter index of book that you wanna delete ===");
-        int index = int.Parse(Console.ReadLine().Trim());
-        Console.WriteLine($"=== The book '{_booksList[index]}' is removed ===");
-        _booksList.RemoveAt(index!);
-        Selector();
+        bool indexBool = int.TryParse(Console.ReadLine()!.Trim(), out int index);
+
+        if (indexBool)
+        {
+            if (index < 0 || index >= _booksList.Count)
+            {
+                Console.WriteLine("*** There is no book with this index ***");
+                DeleteBook();
+                return;
+            }
+            Console.WriteLine($"=== The book '{_booksList[index]}' is removed ===");
+            _booksList.RemoveAt(index!);
+            DoSelect();
+            return;
+        }
+        Console.WriteLine("*** Unknown command ***");
+        DoSelect();
     }
 
-    public void Selector()
+    public void DoSelect()
     {
         Console.WriteLine("=== Select action: [add / delete / show / find / exit] ===");
         string? answ = Console.ReadLine()?.ToLower().Trim();
 
-        switch (answ!.ToLower().Trim())
+        switch (answ)
         {
             case "add":
                 AddBook();
                 break;
             case "delete":
-                Delete();
+                DeleteBook();
                 break;
             case "show":
                 ShowBooks();
@@ -62,27 +75,23 @@ class Library
                 break;
             default:
                 Console.WriteLine("*** Unknown command ***");
-                Selector();
+                DoSelect();
                 break;
         }
     }
 
-    public void ShowBooks()
+    public void ShowBooks() 
     {
         if (_booksList.Count <= 0)
         {
             Console.WriteLine("*** Library is empty. Add book? [yes / no] ***");
             string? action = Console.ReadLine()?.ToLower().Trim();
 
-            if (action == "yes")
-            {
-                AddBook();
-                return;
-            }
-            else if (action == "no")
-            {
-                Selector();
-            }
+            if (action == "yes") { AddBook(); return; }
+            else if (action == "no") { DoSelect(); return; }
+           
+            Console.WriteLine("*** Unknown command ***");
+            DoSelect();
         }
 
         Console.WriteLine("*******************************");
@@ -91,20 +100,35 @@ class Library
             Console.WriteLine($"{i}: {_booksList[i]}");
         }
         Console.WriteLine("*******************************");
-        Selector();
+        DoSelect();
     }
 
     public void FindBook()
     {
-        Console.WriteLine("=== Enter id of book ===");
-        string? answ = Console.ReadLine().Trim();
-        Console.WriteLine("=== Name: {0}, id: {1} ===", _booksList[int.Parse(answ)], answ);
-        Selector();
+        Console.WriteLine("=== Enter index of book ===");
+        bool indexBool = int.TryParse(Console.ReadLine()!.Trim(), out int index);
+
+        if (indexBool)
+        {
+            if (index < 0 || index >= _booksList.Count)
+            {
+                Console.WriteLine("*** There is no book with this index ***");
+                FindBook();
+                return;
+            }
+            Console.WriteLine($"=== Name: {_booksList[index]}, index: {index} ===");
+            DoSelect();
+            return;
+        }
+        Console.WriteLine("*** Unknown command ***");
+        DoSelect();
     }
 
     public void StartProg()
     {
+        Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("=== Hi, it's your library ===");
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("=== Show book or add ? [show / add / exit] ===");
         string? action = Console.ReadLine()?.ToLower().Trim();
 
@@ -120,7 +144,7 @@ class Library
                 break;
             default:
                 Console.WriteLine("*** Unknown command ***");
-                Selector();
+                DoSelect();
                 break;
         }
     }
